@@ -1,0 +1,30 @@
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+import { createInstances } from "./instance";
+import { getSigners } from "./signers";
+import { createTransaction, waitForBlock } from "./utils";
+
+describe("Mixnet Efficient", function () {
+  before(async function () {
+    this.signers = await getSigners(ethers);
+  });
+
+  it("Mixnet Efficient", async function () {
+    const signers = await getSigners(ethers);
+    const aliceAddress = await signers.alice.getAddress();
+
+    const mixnetFactory = await ethers.getContractFactory("ChainedCMUX");
+    const mixnet = await mixnetFactory.connect(signers.alice).deploy();
+    await mixnet.waitForDeployment();
+    const mixnetAddress = await mixnet.getAddress();
+    console.log("CMUX ADDRESS  :  ", mixnetAddress);
+
+    const result = await mixnet.cmuxDouble(1);
+    console.log(result);
+
+    const tx2 = await mixnet.cmuxDouble(43);
+
+    console.log(tx2);
+  });
+});

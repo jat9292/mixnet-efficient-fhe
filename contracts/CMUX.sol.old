@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+pragma solidity 0.8.19;
+
+import "fhevm/lib/TFHE.sol";
+
+
+contract ChainedCMUX  {
+    function cmuxUnique(uint32 x) public returns(uint32){
+            ebool condition = TFHE.lt(TFHE.asEuint32(42),x);
+            euint32 result = TFHE.cmux(condition,TFHE.asEuint32(1),TFHE.asEuint32(0));
+        return TFHE.decrypt(result);
+    }
+
+    function cmuxDouble(uint32 x) public returns(uint32){
+            ebool condition1 = TFHE.lt(TFHE.asEuint32(42),x);
+            euint32 result = TFHE.cmux(condition1,TFHE.asEuint32(1),TFHE.asEuint32(0));
+            ebool condition2 = TFHE.lt(TFHE.asEuint32(0),result);
+            result = TFHE.cmux(condition2,result,TFHE.asEuint32(0));
+        return TFHE.decrypt(result);
+    }
+
+}
