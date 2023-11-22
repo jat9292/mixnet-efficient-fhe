@@ -77,8 +77,8 @@
                                 bytes calldata secretRecepientAddress,
                                 uint256 index) public view onlySignedPublicKey(publicKey, signature) returns (bytes memory){
             ebool isSecretCorrect = TFHE.eq(TFHE.asEuint32(secretRecepientAddress),poolOriginal[index].encryptedRecipient);
-            euint32 encryptedIndex = TFHE.cmux(isSecretCorrect,indexMapping[index],MAX_EUINT32);
-            return TFHE.reencrypt(encryptedIndex, publicKey, 0);
+            //euint32 encryptedIndex = TFHE.cmux(isSecretCorrect,indexMapping[index],MAX_EUINT32);
+            return TFHE.reencrypt(indexMapping[index], publicKey, 0);
         }
 
         // Withdraws an encrypted amount of ERC-20.
