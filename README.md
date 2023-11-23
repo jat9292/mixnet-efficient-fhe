@@ -1,22 +1,23 @@
-# How to run tests
+# How to run the integration tests
 
-First run the normal version of fhEVM with `pnpm fhevm:start` then copy the default setup file locally with : 
+First, create a `.env` file (see `.env.example`) in the root of the project and a fill the `MNEMONIC` variable
+correctly. If you need to generate a new mnemonic, you can use [this site](https://iancoleman.io/bip39/).
 
-```shell
-docker cp fhevm:/config/setup.sh .
+Then install the dependencies using :
+
 ```
-Then kill the default fhEVM docker instance, and edit the `setup.sh` : set the gasLimit to 100M instead of 10M by editing the value of : 
-```
-cat $HOME_EVMOSD/config/genesis.json | jq '.consensus_params["block"]["max_gas"]
-```
-The run the custom fhEVM instance with the new custom gas limit :
-```
-docker run -i -v $PWD/setup.sh:/config/setup.sh -p 8545:8545 --rm --name fhevm ghcr.io/zama-ai/evmos-dev-node:v0.1.10
+pnpm install
 ```
 
-Finally use the faucet (after setting a .env, see .env.example) and run the hardhat test :
+Then run the fhEVM with :
 
-```shell
+```
+pnpm fhevm:start
+```
+
+Finally run the tests in a new terminal window with :
+
+```
 pnpm fhevm:faucet
 pnpm test
 ```
