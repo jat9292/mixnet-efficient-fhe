@@ -116,6 +116,8 @@ contract EncryptedERC20 is EIP712WithModifier { // Not really an ERC20 : missing
     function _transfer(address from, address to, euint32 amount) internal {
         // Make sure the sender has enough tokens.
         require(TFHE.decrypt(TFHE.le(amount, balances[from])));
+        //ebool isPossible = TFHE.le(amount, balances[from]);
+        //amount = TFHE.cmux(isPossible,amount,TFHE.asEuint32(0));
 
         // Add to the balance of `to` and subract from the balance of `from`.
         balances[to] = balances[to] + amount;

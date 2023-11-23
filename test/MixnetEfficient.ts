@@ -44,7 +44,8 @@ describe("Mixnet Efficient", function () {
 
     encryptedAmount = instancesToken.alice.encrypt32(50_000);
     const tx2 = await token["transfer(address,bytes)"](bobAddress, encryptedAmount);
-    await tx2.wait();
+    const tx2receipt = await tx2.wait();
+    console.log("Gas consumed by 1st transfer tx : ", tx2receipt?.gasUsed);
     console.log("Alice successfully sent 50_000 Encryptedtoken to Bob");
 
     encryptedAmount = instancesToken.alice.encrypt32(50_000);
@@ -59,13 +60,12 @@ describe("Mixnet Efficient", function () {
 
     const tokenAlice= instancesToken.alice.getTokenSignature(tokenAddress)!;
     let encryptedBalAlice = await token.connect(signers.alice)["balanceOf(bytes32,bytes)"](tokenAlice.publicKey, tokenAlice.signature);
-    console.log("encryptedBalAlice  : ", encryptedBalAlice);
     let balanceAlice = instancesToken.alice.decrypt(tokenAddress, encryptedBalAlice);
     console.log("balanceAlice : ", balanceAlice);
 
     // ALICE deploys the Mixnet
     const mixnetFactory = await ethers.getContractFactory("MixerCoreEfficient");
-    const mixnet = await mixnetFactory.connect(signers.alice).deploy(tokenAddress,2); // simple example with 2 swaps per recipient insertion
+    const mixnet = await mixnetFactory.connect(signers.alice).deploy(tokenAddress);
     await mixnet.waitForDeployment();
     const mixnetAddress = await mixnet.getAddress();
     console.log("MIXNET ADDRESS  :  ", mixnetAddress);
@@ -91,43 +91,25 @@ describe("Mixnet Efficient", function () {
     let encryptedRecipient = instancesMixnet.alice.encrypt32(Number(addTo32bits));
     encryptedAmount = instancesMixnet.alice.encrypt32(10_000);
     const tx4 = await mixnet.deposit(encryptedRecipient, encryptedAmount);
-    await tx4.wait();
+    const tx4receipt = await tx4.wait();
     console.log("Alice deposited 10_000 Encryptedtoken in the mixnet for Carol");
-    
-    /*let pool0 = await mixnet.pool(0);
-    console.log("Pool0 : " , pool0 );*/
-
-
-    const mixnetIris = instancesMixnet.iris.getTokenSignature(mixnetAddress)!;
-    console.log("mixnetIris : ", mixnetIris)
-    addTo32bits = await mixnet.addressTo32Bits(carolAddress);
-    let encAddTo32bits = instancesMixnet.iris.encrypt32(Number(addTo32bits));
-    let encLatestIndex = await mixnet.connect(signers.iris).getLatestIndex(mixnetIris.publicKey,mixnetIris.signature,encAddTo32bits,0); // <--- fhevm BUG  ??
-    let latestIndex = instancesMixnet.iris.decrypt(mixnetAddress, encLatestIndex);
-    console.log("latestIndex : ", latestIndex);
-
-
 
     addTo32bits = await mixnet.addressTo32Bits(daveAddress);  // in real world the encryptedRecipient should be computed off-chain instead
     encryptedRecipient = instancesMixnet.bob.encrypt32(Number(addTo32bits));
     encryptedAmount = instancesMixnet.bob.encrypt32(10_000);
-    const tx5 = await mixnet.connect(signers.bob).deposit(encryptedRecipient, encryptedAmount, {gasLimit: 10_000_000});
+    const tx5 = await mixnet.connect(signers.bob).deposit(encryptedRecipient, encryptedAmount);
     
     const tx5receipt = await tx5.wait();
     console.log("Gas consumed by 2nd deposit tx : ", tx5receipt?.gasUsed);
 
     console.log("Bob deposited 10_000 Encryptedtoken in the mixnet for Dave");
 
-     /*pool0 = await mixnet.pool(0);
-    console.log("Pool0 : " , pool0 );
-    let pool1 = await mixnet.pool(1);
-    console.log("Pool1 : " , pool1 );*/
  
 
     addTo32bits = await mixnet.addressTo32Bits(garyAddress);  // in real world the encryptedRecipient should be computed off-chain instead
     encryptedRecipient = instancesMixnet.eva.encrypt32(Number(addTo32bits));
     encryptedAmount = instancesMixnet.eva.encrypt32(10_000);
-    const tx5bis = await mixnet.connect(signers.eva).deposit(encryptedRecipient, encryptedAmount, {gasLimit: 10_000_000});
+    const tx5bis = await mixnet.connect(signers.eva).deposit(encryptedRecipient, encryptedAmount);
     await tx5bis.wait();
 
     const tx5bisreceipt = await tx5bis.wait();
@@ -135,33 +117,18 @@ describe("Mixnet Efficient", function () {
 
     console.log("Eva deposited 10_000 Encryptedtoken in the mixnet for Gary");
 
-     /*pool0 = await mixnet.pool(0);
-    console.log("Pool0 : " , pool0 );
-     pool1 = await mixnet.pool(1);
-    console.log("Pool1 : " , pool1 );
-    let pool2 = await mixnet.pool(2);
-    console.log("Pool2 : " , pool2 );*/
 
 
     addTo32bits = await mixnet.addressTo32Bits(harryAddress);  // in real world the encryptedRecipient should be computed off-chain instead
     encryptedRecipient = instancesMixnet.felix.encrypt32(Number(addTo32bits));
     encryptedAmount = instancesMixnet.felix.encrypt32(10_000);
-    const tx5tris = await mixnet.connect(signers.felix).deposit(encryptedRecipient, encryptedAmount, {gasLimit: 10_000_000});
+    const tx5tris = await mixnet.connect(signers.felix).deposit(encryptedRecipient, encryptedAmount);
     await tx5tris.wait();
     
     const tx5trisreceipt = await tx5bis.wait();
     console.log("Gas consumed by 4th deposit tx : ", tx5trisreceipt?.gasUsed);
 
     console.log("Felix deposited 10_000 Encryptedtoken in the mixnet for Harry");
-
-     /*pool0 = await mixnet.pool(0);
-    console.log("Pool0 : " , pool0 );
-     pool1 = await mixnet.pool(1);
-    console.log("Pool1 : " , pool1 );
-     pool2 = await mixnet.pool(2);
-    console.log("Pool2 : " , pool2 );
-    let pool3 = await mixnet.pool(3);
-    console.log("Pool3 : " , pool3 );*/
 
     encryptedBalAlice = await token.connect(signers.alice)["balanceOf(bytes32,bytes)"](tokenAlice.publicKey, tokenAlice.signature);
     balanceAlice = instancesToken.alice.decrypt(tokenAddress, encryptedBalAlice);
@@ -182,28 +149,55 @@ describe("Mixnet Efficient", function () {
     const balanceFelix = instancesToken.felix.decrypt(tokenAddress, encryptedBalFelix);
     console.log("balanceFelix : ", balanceFelix);
 
-/*
-    addTo32bits = await mixnet.addressTo32Bits(carolAddress);
-    encAddTo32bits = instancesMixnet.iris.encrypt32(Number(addTo32bits));
-    encLatestIndex = await mixnet.connect(signers.iris).getLatestIndex(mixnetIris.publicKey,mixnetIris.signature,encAddTo32bits,0); // <--- fhevm BUG  ??
-    latestIndex = instancesMixnet.iris.decrypt(mixnetAddress, encLatestIndex);
-    console.log("latestIndex : ", latestIndex); 
 
 
-
-
-
-
-    const tx6 = await mixnet.connect(signers.carol).withdraw(latestIndex);
+    const tx6 = await mixnet.connect(signers.carol).withdraw([0,2]); // 0 corresponds to her real index, 2 is added for anonymity
     const tx6receipt = await tx6.wait();
     console.log("Carole withdrew 10_000 Encryptedtoken from the mixnet");
     console.log("Gas consumed by withdraw tx : ", tx6receipt?.gasUsed);
 
-    //const tx6bis = await mixnet.connect(signers.carol).withdraw(latestIndex); // Carol tries to cheat by withdrawing twice (impossible, as expected)
-    //const tx6bisreceipt = await tx6bis.wait();
-    //console.log("Carole withdraw 10_000 Encryptedtoken from the mixnet");
-    //console.log("Gas consumed by withdraw tx : ", tx6bisreceipt?.gasUsed);
- */
+    let tokenCarol= instancesToken.carol.getTokenSignature(tokenAddress)!;
+    let encryptedBalCarol = await token.connect(signers.carol)["balanceOf(bytes32,bytes)"](tokenCarol.publicKey, tokenCarol.signature);
+    let balanceCarol = instancesToken.carol.decrypt(tokenAddress, encryptedBalCarol);
+    console.log("balanceCarol : ", balanceCarol);
+
+    const tx6bis = await mixnet.connect(signers.carol).withdraw([0,2]); // Carol tries to cheat by withdrawing twice (impossible, as expected)
+    const tx6bisreceipt = await tx6bis.wait();
+    console.log("Carole withdrew 10_000 Encryptedtoken from the mixnet (a second time, trying to cheat)");
+    console.log("Gas consumed by withdraw tx : ", tx6bisreceipt?.gasUsed);
+ 
+    encryptedBalCarol = await token.connect(signers.carol)["balanceOf(bytes32,bytes)"](tokenCarol.publicKey, tokenCarol.signature);
+    balanceCarol = instancesToken.carol.decrypt(tokenAddress, encryptedBalCarol);
+    console.log("balanceCarol : ", balanceCarol);
+
+    const tx7 = await mixnet.connect(signers.dave).withdraw([0,3]); // list of indexes do not contain dave's index 1
+    const tx7receipt = await tx7.wait();
+    console.log("Dave withdrew 10_000 Encryptedtoken from the mixnet (but entered wrong indexes, so won't receive any token)");
+    console.log("Gas consumed by withdraw tx : ", tx7receipt?.gasUsed);
+    
+    const tokenDave= instancesToken.dave.getTokenSignature(tokenAddress)!;
+    let encryptedBalDave = await token.connect(signers.dave)["balanceOf(bytes32,bytes)"](tokenDave.publicKey, tokenDave.signature);
+    let balanceDave = instancesToken.dave.decrypt(tokenAddress, encryptedBalDave);
+    console.log("balanceDave : ", balanceDave);
+
+    const tx7bis = await mixnet.connect(signers.dave).withdraw([1,2]); // this time 1 (dave's index) is in the list, so transfer of tokens should succeed
+    const tx7bisreceipt = await tx7bis.wait();
+    console.log("Dave withdrew 10_000 Encryptedtoken from the mixnet (this time the list of indexes contains the correct one for Dave)");
+    console.log("Gas consumed by withdraw tx : ", tx7bisreceipt?.gasUsed);
+    
+    encryptedBalDave = await token.connect(signers.dave)["balanceOf(bytes32,bytes)"](tokenDave.publicKey, tokenDave.signature);
+    balanceDave = instancesToken.dave.decrypt(tokenAddress, encryptedBalDave);
+    console.log("balanceDave : ", balanceDave);
+
+    const tx8 = await mixnet.connect(signers.gary).withdraw([1,2,3]); // 2 (gary's index) is in the list, so transfer of tokens should succeed
+    const tx8receipt = await tx8.wait();
+    console.log("Gary withdrew 10_000 Encryptedtoken from the mixnet (his list of indexes is longer, increasing the anonymity but also the gas needed)");
+    console.log("Gas consumed by withdraw tx : ", tx8receipt?.gasUsed);
+ 
+    const tokenGary = instancesToken.gary.getTokenSignature(tokenAddress)!;
+    const encryptedBalGary = await token.connect(signers.gary)["balanceOf(bytes32,bytes)"](tokenGary.publicKey, tokenGary.signature);
+    const balanceGary = instancesToken.gary.decrypt(tokenAddress, encryptedBalGary);
+    console.log("balanceGary : ", balanceGary);
 
   });
 });
